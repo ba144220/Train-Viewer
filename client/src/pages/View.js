@@ -1,11 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { AppBar, Chip, Box, Grid, Paper, Typography, Toolbar, Alert } from "@mui/material";
+import {
+    AppBar,
+    Chip,
+    Box,
+    Grid,
+    Paper,
+    Typography,
+    Toolbar,
+    Alert,
+    Switch,
+    FormGroup,
+    FormControlLabel,
+} from "@mui/material";
 import DoneRoundedIcon from "@mui/icons-material/DoneRounded";
 import { getFigure, getPin } from "../actions/actions";
 import webSocket from "socket.io-client";
 import moment from "moment";
 
-import { Scatter } from "react-chartjs-2";
+import { Line, Scatter } from "react-chartjs-2";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -25,6 +37,7 @@ const View = () => {
 
     const [pin, setPin] = useState();
     const [figure, setFigure] = useState();
+    const [scatter, setScatter] = useState(false);
     useEffect(() => {
         if (ws) {
             //連線成功在 console 中打印訊息
@@ -56,16 +69,29 @@ const View = () => {
 
         let datasets = [];
 
-        plotData.forEach((ele, idx) => {
-            let temp = {
-                label: ele.title,
-                data: ele.x.map((_, i) => ({ x: ele.x[i], y: ele.y[i] })),
-                backgroundColor: COLORS[idx % COLORS.length],
-                borderColor: "rgba(0,0,0,0)",
-            };
-            datasets.push(temp);
-        });
-        return { datasets: datasets };
+        if (scatter) {
+            plotData.forEach((ele, idx) => {
+                let temp = {
+                    label: ele.title,
+                    data: ele.x.map((_, i) => ({ x: ele.x[i], y: ele.y[i] })),
+                    backgroundColor: COLORS[idx % COLORS.length],
+                    borderColor: "rgba(0,0,0,0)",
+                };
+                datasets.push(temp);
+            });
+            return { datasets: datasets };
+        } else {
+            plotData.forEach((ele, idx) => {
+                let temp = {
+                    label: ele.title,
+                    data: ele.x.map((_, i) => ele.y[i]),
+                    backgroundColor: COLORS[idx % COLORS.length],
+                    borderColor: "rgba(0,0,0,0)",
+                };
+                datasets.push(temp);
+            });
+            return { labels: [...Array(plotData[0].x.length).keys()], datasets: datasets };
+        }
     };
 
     useEffect(() => {
@@ -110,6 +136,8 @@ const View = () => {
                     pt: 2,
                     pl: 2,
                     pr: 2,
+                    display: "flex",
+                    flexDirection: "row",
                 }}
             >
                 {figure?.plots ? (
@@ -119,6 +147,13 @@ const View = () => {
                 ) : (
                     <></>
                 )}
+                <Box flexGrow={1}></Box>
+                <FormGroup>
+                    <FormControlLabel
+                        control={<Switch onClick={() => setScatter(!scatter)} />}
+                        label="Scatter"
+                    />
+                </FormGroup>
             </Box>
             <Box
                 sx={{
@@ -132,7 +167,14 @@ const View = () => {
                                 <Grid item xs={12} md={6} key={plot.title}>
                                     <Paper elevation={3} sx={{ padding: 2 }}>
                                         <Typography textAlign={"center"}>{plot.title}</Typography>
-                                        <Scatter data={dataGenerator(plot.data)} options={{}} />
+                                        {scatter ? (
+                                            <Scatter data={dataGenerator(plot.data)} options={{}} />
+                                        ) : (
+                                            <Line
+                                                data={dataGenerator(plot.data)}
+                                                options={{}}
+                                            ></Line>
+                                        )}
                                     </Paper>
                                 </Grid>
                             ))
