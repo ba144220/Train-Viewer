@@ -40,7 +40,7 @@ app.use("/plots", plotRoutes);
 app.use("/figures", figureRoutes);
 app.set("socket", io);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 mongoose
     .connect(process.env.CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true })

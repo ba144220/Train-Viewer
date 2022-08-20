@@ -90,7 +90,12 @@ const View = () => {
                 };
                 datasets.push(temp);
             });
-            return { labels: [...Array(plotData[0].x.length).keys()], datasets: datasets };
+            let res = undefined;
+            try {
+                res = { labels: [...Array(plotData[0]?.x.length).keys()], datasets: datasets };
+            } catch {}
+
+            return res;
         }
     };
 
